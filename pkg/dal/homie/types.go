@@ -1,17 +1,22 @@
 package homie
 
-type Nodes map[string]Node
-
-type Node struct {
-	Name string
-	Type string
-
-	Properties Properties
+type Device struct {
+	Name           string
+	Implementation string
+	NodeIDs        []string
 }
 
-type Properties map[string]Property
+type Node struct {
+	NodeID      string
+	Name        string
+	Type        string
+	PropertyIDs []string
+}
 
 type Property struct {
+	NodeID     string
+	PropertyID string
+
 	Name     string
 	DataType string
 
@@ -19,6 +24,4 @@ type Property struct {
 	Settable bool
 	Retained bool
 	Unit     string
-
-	Value any
 }
