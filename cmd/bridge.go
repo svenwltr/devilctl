@@ -2,6 +2,7 @@ package cmd
 
 import (
 	"context"
+	"errors"
 	"fmt"
 	"net/url"
 	"strconv"
@@ -76,7 +77,7 @@ func (r *HomieBridgeRunner) Run(ctx context.Context) error {
 }
 
 type HomieBridge struct {
-	Broker   *homie.Device
+	Broker   *homie.Broker
 	Speakers map[string]raumfeld.Speaker
 }
 
@@ -145,52 +146,66 @@ func (b *HomieBridge) HandleBrokerAction(nodeID, propertyID, value string) error
 func (b *HomieBridge) PublishHomieDefinitions(ctx context.Context) error {
 	logrus.Infof("publishing homie nodes")
 
-	nodes := homie.Nodes{}
+	device := homie.Device{
+		Name:           "devilctl raumfeld-bridge",
+		Implementation: "github.com/svenwltr/devilctl",
+	}
 
-	for usn, speaker := range b.Speakers {
-		nodes[usn] = homie.Node{
-			Name: speaker.FriendlyName(),
-			Type: "Speaker",
-			Properties: homie.Properties{
-				"onoff": homie.Property{
-					Name:     "On/Off",
-					DataType: "boolean",
-					Retained: true,
-					Settable: true,
-				},
-				"volume": homie.Property{
-					Name:     "Volume",
-					DataType: "float",
-					Format:   "0:1",
-					Retained: true,
-					Settable: true,
-				},
-				"mute": homie.Property{
-					Name:     "Mute",
-					DataType: "boolean",
-					Format:   "0:1",
-					Retained: true,
-					Settable: true,
-				},
-			},
+	for nodeID, speaker := range b.Speakers {
+		device.NodeIDs = append(device.NodeIDs, nodeID)
+		err := errors.Join(
+			b.Broker.PublishNode(homie.Node{
+				NodeID:      nodeID,
+				Name:        speaker.FriendlyName(),
+				Type:        "Speaker",
+				PropertyIDs: []string{"onoff", "volume", "mute"},
+			}),
+			b.Broker.PublishProperty(homie.Property{
+				NodeID:     nodeID,
+				PropertyID: "onoff",
+				Name:       "On/Off",
+				DataType:   "boolean",
+				Retained:   true,
+				Settable:   true,
+			}),
+			b.Broker.PublishProperty(homie.Property{
+				NodeID:     nodeID,
+				PropertyID: "volume",
+				Name:       "Volume",
+				DataType:   "float",
+				Format:     "0:1",
+				Retained:   true,
+				Settable:   true,
+			}),
+			b.Broker.PublishProperty(homie.Property{
+				NodeID:     nodeID,
+				PropertyID: "mute",
+				Name:       "Mute",
+				DataType:   "boolean",
+				Format:     "0:1",
+				Retained:   true,
+				Settable:   true,
+			}),
+		)
+		if err != nil {
+			return err
 		}
 	}
 
-	b.Broker.Nodes = nodes
-	return b.Broker.PublishAll()
+	return b.Broker.PublishDevice(device)
 }
 
 func (b *HomieBridge) OnVolumeChange(s raumfeld.Speaker, volume int, channel string) {
 	logrus.Infof("volume changed on speaker to %#v", volume)
-	b.Broker.Value(s.ID(), "volume", float64(volume)/100.)
+	b.Broker.PublishValue(s.ID(), "volume", float64(volume)/100.)
 }
 
 func (b *HomieBridge) OnMuteChange(s raumfeld.Speaker, muted bool, channel string) {
 	logrus.Infof("mute changed on speaker to %#v", muted)
-	b.Broker.Value(s.ID(), "mute", muted)
+	b.Broker.PublishValue(s.ID(), "mute", muted)
 }
 
 func (b *HomieBridge) OnPowerStateChange(s raumfeld.Speaker, state string) {
 	logrus.Infof("power state changed on speaker to %#v", state)
-	b.Broker.Value(s.ID(), "onoff", state != "MANUAL_STANDBY")
+	b.Broker.PublishValue(s.ID(), "onoff", state != "MANUAL_STANDBY")
 }
