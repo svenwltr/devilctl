@@ -1,0 +1,48 @@
+name: Release Binaries
+
+on:
+  release:
+    types: [created]
+permissions:
+  contents: write
+
+jobs:
+  build:
+    name: Release
+    runs-on: ubuntu-latest
+    steps:
+    - name: Checkout code
+      uses: actions/checkout@v3
+      with:
+        fetch-depth: 0
+
+    - name: Setup Go
+      uses: actions/setup-go@v3
+      with:
+        go-version: '1.20'
+
+    - name: Fetch vendor
+      run: go mod vendor
+
+    - name: Test and build
+      run: |
+        go run github.com/rebuy-de/rebuy-go-sdk/v5/cmd/buildutil \
+          --compress \
+          -x linux/amd64 \
+          -x linux/arm64 \
+          -x darwin/arm64
+
+    # The symlinks cause duplicate files on the GitHub releases page. Perhaps
+    # we should fix this in buildutil.
+    - name: Clean dist directory
+      run: |
+        cd dist && rm $(find . -type l)
+
+    - name: Upload binaries to release
+      uses: svenstaro/upload-release-action@v2
+      with:
+        repo_token: ${{ secrets.GITHUB_TOKEN }}
+        file: dist/devilctl-*.tar.gz
+        tag: ${{ github.ref }}
+        overwrite: true
+        file_glob: true

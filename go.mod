@@ -6,7 +6,6 @@ require (
 	github.com/eclipse/paho.mqtt.golang v1.4.3
 	github.com/gosimple/slug v1.13.1
 	github.com/huin/goupnp v1.2.0
-	github.com/pkg/errors v0.9.1
 	github.com/rebuy-de/rebuy-go-sdk/v5 v5.0.0
 	github.com/sirupsen/logrus v1.9.0
 	github.com/spf13/cobra v1.7.0
@@ -48,7 +47,6 @@ require (
 	github.com/cloudflare/circl v1.3.2 // indirect
 	github.com/davecgh/go-spew v1.1.1 // indirect
 	github.com/emirpasic/gods v1.18.1 // indirect
-	github.com/evanw/esbuild v0.17.17 // indirect
 	github.com/gemnasium/logrus-graylog-hook/v3 v3.1.0 // indirect
 	github.com/go-git/gcfg v1.5.0 // indirect
 	github.com/go-git/go-billy/v5 v5.4.1 // indirect
@@ -72,6 +70,7 @@ require (
 	github.com/mitchellh/copystructure v1.2.0 // indirect
 	github.com/mitchellh/reflectwalk v1.0.2 // indirect
 	github.com/pjbgf/sha1cd v0.3.0 // indirect
+	github.com/pkg/errors v0.9.1 // indirect
 	github.com/pmezard/go-difflib v1.0.0 // indirect
 	github.com/sergi/go-diff v1.3.1 // indirect
 	github.com/skeema/knownhosts v1.1.0 // indirect
