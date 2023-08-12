@@ -10,8 +10,8 @@ import (
 
 	"github.com/sirupsen/logrus"
 	"github.com/spf13/cobra"
-	"gitlab.com/svenwltr/localh0rst/apps/devilctl/pkg/dal/homie"
-	"gitlab.com/svenwltr/localh0rst/apps/devilctl/pkg/dal/raumfeld"
+	"github.com/svenwltr/devilctl/pkg/dal/homie"
+	"github.com/svenwltr/devilctl/pkg/dal/raumfeld"
 	"golang.org/x/sync/errgroup"
 )
 

@@ -1,4 +1,4 @@
-module gitlab.com/svenwltr/localh0rst/apps/devilctl
+module github.com/svenwltr/devilctl
 
 go 1.20
 
