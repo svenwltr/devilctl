@@ -4,7 +4,7 @@ import (
 	"github.com/rebuy-de/rebuy-go-sdk/v5/pkg/cmdutil"
 	"github.com/sirupsen/logrus"
 
-	"gitlab.com/svenwltr/localh0rst/apps/devilctl/cmd"
+	"github.com/svenwltr/devilctl/cmd"
 )
 
 func main() {

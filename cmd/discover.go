@@ -4,7 +4,7 @@ import (
 	"context"
 	"fmt"
 
-	"gitlab.com/svenwltr/localh0rst/apps/devilctl/pkg/dal/raumfeld"
+	"github.com/svenwltr/devilctl/pkg/dal/raumfeld"
 	"golang.org/x/sync/errgroup"
 )
 
