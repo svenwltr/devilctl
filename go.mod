@@ -4,13 +4,13 @@ go 1.20
 
 require (
 	github.com/eclipse/paho.mqtt.golang v1.4.3
+	github.com/go-chi/chi/v5 v5.0.10
 	github.com/gosimple/slug v1.13.1
 	github.com/huin/goupnp v1.2.0
 	github.com/rebuy-de/rebuy-go-sdk/v5 v5.0.0
 	github.com/sirupsen/logrus v1.9.0
 	github.com/spf13/cobra v1.7.0
 	github.com/stretchr/testify v1.8.2
-	golang.org/x/exp v0.0.0-20230420155640-133eef4313cb
 	golang.org/x/sync v0.1.0
 )
 
