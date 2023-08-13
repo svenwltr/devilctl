@@ -24,9 +24,6 @@ func (r *HomieBridgeRunner) Bind(cmd *cobra.Command) error {
 	cmd.PersistentFlags().StringVar(
 		&r.broker, "broker", "",
 		`The broker MQTT URI. ex: tcp://10.10.1.1:1883`)
-	cmd.PersistentFlags().StringSliceVar(
-		&r.locations, "location", nil,
-		`Pin speakers by their URL. URLs are visible with "devilctl discover"`)
 	return nil
 }
 
@@ -84,6 +81,11 @@ type HomieBridge struct {
 func (b *HomieBridge) Run(ctx context.Context) error {
 	b.Broker.ActionHandler = b.HandleBrokerAction
 
+	sub, err := raumfeld.NewSubsciptionServer(b)
+	if err != nil {
+		return fmt.Errorf("create subscription server: %w", err)
+	}
+
 	group, ctx := errgroup.WithContext(ctx)
 
 	group.Go(func() error {
@@ -101,11 +103,15 @@ func (b *HomieBridge) Run(ctx context.Context) error {
 		return nil
 	})
 
+	group.Go(func() error {
+		return sub.Run(ctx)
+	})
+
 	for _, speaker := range b.Speakers {
-		speaker := speaker
-		group.Go(func() error {
-			return speaker.Subscribe(ctx, b)
-		})
+		err := sub.Subscribe(speaker)
+		if err != nil {
+			return fmt.Errorf("subscribe: %w", err)
+		}
 	}
 
 	return group.Wait()
@@ -195,17 +201,17 @@ func (b *HomieBridge) PublishHomieDefinitions(ctx context.Context) error {
 	return b.Broker.PublishDevice(device)
 }
 
-func (b *HomieBridge) OnVolumeChange(s raumfeld.Speaker, volume int, channel string) {
+func (b *HomieBridge) OnVolumeChange(id string, volume int, channel string) {
 	logrus.Infof("volume changed on speaker to %#v", volume)
-	b.Broker.PublishValue(s.ID(), "volume", float64(volume)/100.)
+	b.Broker.PublishValue(id, "volume", float64(volume)/100.)
 }
 
-func (b *HomieBridge) OnMuteChange(s raumfeld.Speaker, muted bool, channel string) {
+func (b *HomieBridge) OnMuteChange(id string, muted bool, channel string) {
 	logrus.Infof("mute changed on speaker to %#v", muted)
-	b.Broker.PublishValue(s.ID(), "mute", muted)
+	b.Broker.PublishValue(id, "mute", muted)
 }
 
-func (b *HomieBridge) OnPowerStateChange(s raumfeld.Speaker, state string) {
+func (b *HomieBridge) OnPowerStateChange(id, state string) {
 	logrus.Infof("power state changed on speaker to %#v", state)
-	b.Broker.PublishValue(s.ID(), "onoff", state != "MANUAL_STANDBY")
+	b.Broker.PublishValue(id, "onoff", state != "MANUAL_STANDBY")
 }

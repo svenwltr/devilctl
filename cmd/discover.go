@@ -29,24 +29,32 @@ func DiscoverRunner(ctx context.Context) error {
 			waitMuted      = make(chan struct{})
 		)
 
-		handler := raumfeld.SubscribeHandlerFuncs{
-			VolumeChange: func(s raumfeld.Speaker, volume int, channel string) {
-				fmt.Printf("Volume:           %v\n", volume)
-				close(waitVolume)
+		srv, err := raumfeld.NewSubsciptionServer(
+			raumfeld.SubscribeHandlerFuncs{
+				VolumeChange: func(id string, volume int, channel string) {
+					fmt.Printf("Volume:           %v\n", volume)
+					close(waitVolume)
+				},
+				MuteChange: func(id string, muted bool, channel string) {
+					fmt.Printf("Muted:            %v\n", muted)
+					close(waitMuted)
+				},
+				PowerStateChange: func(id, state string) {
+					fmt.Printf("PowerState:       %v\n", state)
+					close(waitPowerState)
+				},
 			},
-			MuteChange: func(s raumfeld.Speaker, muted bool, channel string) {
-				fmt.Printf("Muted:            %v\n", muted)
-				close(waitMuted)
-			},
-			PowerStateChange: func(s raumfeld.Speaker, state string) {
-				fmt.Printf("PowerState:       %v\n", state)
-				close(waitPowerState)
-			},
+		)
+		if err != nil {
+			return err
 		}
 
-		go func() {
-			fmt.Println(speaker.Subscribe(ctx, handler))
-		}()
+		go srv.Run(ctx)
+
+		err = srv.Subscribe(speaker)
+		if err != nil {
+			return err
+		}
 
 		<-waitVolume
 		<-waitPowerState
